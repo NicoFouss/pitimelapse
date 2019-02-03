@@ -48,11 +48,59 @@ def config_directory(value_GPIO):
             name=time.strftime('%d_%B_%Y_%H_%M_%S')
             directory = os.path.join(current_directory,"scene",name)
             os.mkdir(directory)
+    
+    return directory
+    
 
-    print(directory)
-    return directory    
+
+    # get the last file
+
+def get_last_photo(directory):
+    
+    list_dir=os.listdir(directory)
+    
+    
+    if list_dir==[]:
+        
+        nb_photo='0001'
+        return nb_photo
+
+    else :
+
+        last_file =''
+        timestamp = 0
+        
+
+        for f in list_dir :
+            
+            
+            f=os.path.join(directory,f)
+            timestamp_f=os.stat(f)
+            timestamp_f=timestamp_f.st_mtime
+
+            if timestamp <timestamp_f :
+
+                timestamp = timestamp_f
+                last_file = os.path.split(f)
+                nb_photo=last_file[1]
+                nb_photo = nb_photo[5:9]
+                nb_photo =str(int(nb_photo)+1)
+                nb_photo="000{}".format(nb_photo)
+                nb_photo=nb_photo[len(nb_photo)-4:len(nb_photo)]
+    return nb_photo
+
+
 
     
+
+
+memory=input("est ce une nouvelle session oui=1 et non =0")
+
+if memory == 1:
+    memory =True
+else :
+    memory = False
+
 
 camera=PiCamera()
 
@@ -64,5 +112,11 @@ config_cam(file_config,camera)
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(12, GPIO.IN)
 
-config_directory(False)
 
+directory=config_directory(memory)
+last_image = get_last_photo(directory)
+
+
+camera.start_preview()
+time.sleep(2)
+camera.capture(os.path.join(directory,'image{}.jpg'.format(last_image)))
